@@ -25,5 +25,8 @@ LABEL \
   io.hass.arch="${BUILD_ARCH}" \
   org.opencontainers.image.source="https://github.com/r-jean-pierre/home-assistant-rustatio-app"
 
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+  CMD curl -fsS http://127.0.0.1:8080/ >/dev/null || exit 1
+
 ENTRYPOINT ["/ha-entrypoint.sh"]
 CMD ["/app/rustatio-server"]

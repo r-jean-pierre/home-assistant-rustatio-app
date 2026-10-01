@@ -1,0 +1,6 @@
+configuration:
+  watch_folder:
+    name: Dossier surveillé
+    description: Dossier sous /share de Home Assistant à exposer en lecture seule à Rustatio comme /torrents.
+network:
+  8080/tcp: Accès LAN direct optionnel à l’interface Web Rustatio (désactivé par défaut)

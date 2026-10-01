@@ -1,0 +1,6 @@
+configuration:
+  watch_folder:
+    name: Watch folder
+    description: Folder below Home Assistant /share to expose read-only to Rustatio as /torrents.
+network:
+  8080/tcp: Optional direct LAN access to the Rustatio Web UI (disabled by default)

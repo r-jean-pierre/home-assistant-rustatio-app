@@ -1,0 +1,39 @@
+name: Rustatio
+version: 1.0.0
+slug: rustatio
+description: Run Rustatio in Home Assistant with Ingress and read-only watch-folder
+  access
+url: https://github.com/r-jean-pierre/home-assistant-rustatio-app
+arch:
+- amd64
+- aarch64
+image: ghcr.io/r-jean-pierre/home-assistant-rustatio-app
+startup: application
+boot: auto
+init: false
+stage: stable
+watchdog: tcp://[HOST]:8080
+ports:
+  8080/tcp: null
+ingress: true
+ingress_port: 8099
+ingress_stream: true
+panel_title: Rustatio
+panel_icon: mdi:download-circle
+panel_admin: true
+discovery:
+- rustatio
+map:
+- type: share
+  read_only: true
+  path: /ha_share
+environment:
+  PORT: '8080'
+  RUST_LOG: rustatio_server=info,rustatio_core=info,rustatio_watch=info,rustatio_watch::engine=error,tower_http=error,hyper=warn,reqwest=warn
+  PUID: '0'
+  PGID: '0'
+options:
+  watch_folder: /torrents
+schema:
+  watch_folder: str
+backup: cold

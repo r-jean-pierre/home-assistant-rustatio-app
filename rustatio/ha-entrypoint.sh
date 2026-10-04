@@ -107,6 +107,92 @@ register_discovery() {
     fi
 }
 
+RUSTATIO_API="http://127.0.0.1:${PORT:-8080}"
+RESUME_FILE="/data/rustatio-resume.json"
+RUSTATIO_PID=""
+
+wait_for_rustatio() {
+    local attempt
+
+    for attempt in $(seq 1 60); do
+        if curl -fsS "${RUSTATIO_API}/api/instances/summary" >/dev/null 2>&1; then
+            return 0
+        fi
+        sleep 1
+    done
+
+    echo "[HA wrapper] WARNING: Rustatio API did not become ready."
+    return 1
+}
+
+save_running_instances() {
+    local response tmp_file
+
+    tmp_file="${RESUME_FILE}.tmp"
+
+    if ! response="$(curl -fsS "${RUSTATIO_API}/api/instances/summary" 2>/dev/null)"; then
+        echo "[HA wrapper] WARNING: could not query Rustatio before shutdown; resume state was not updated."
+        return 0
+    fi
+
+    if ! jq -e '.success == true and (.data | type == "array")' <<<"${response}" >/dev/null; then
+        echo "[HA wrapper] WARNING: invalid Rustatio summary response; resume state was not updated."
+        return 0
+    fi
+
+    if ! jq '[.data[] | select(.state == "running" or .state == "starting") | .id]' \
+        <<<"${response}" >"${tmp_file}"; then
+        echo "[HA wrapper] WARNING: could not build resume state."
+        rm -f "${tmp_file}"
+        return 0
+    fi
+
+    mv "${tmp_file}" "${RESUME_FILE}"
+    echo "[HA wrapper] Saved $(jq 'length' "${RESUME_FILE}") active instance(s) for restart."
+}
+
+restore_running_instances() {
+    local payload count
+
+    [ -f "${RESUME_FILE}" ] || return 0
+
+    if ! jq -e 'type == "array"' "${RESUME_FILE}" >/dev/null 2>&1; then
+        echo "[HA wrapper] WARNING: invalid resume file; leaving it untouched."
+        return 0
+    fi
+
+    count="$(jq 'length' "${RESUME_FILE}")"
+
+    if [ "${count}" -eq 0 ]; then
+        rm -f "${RESUME_FILE}"
+        return 0
+    fi
+
+    payload="$(jq -c '{ids: .}' "${RESUME_FILE}")"
+
+    if curl -fsS \
+        -H "Content-Type: application/json" \
+        -X POST \
+        -d "${payload}" \
+        "${RUSTATIO_API}/api/grid/start" >/dev/null; then
+        echo "[HA wrapper] Restored ${count} previously active instance(s)."
+        rm -f "${RESUME_FILE}"
+    else
+        echo "[HA wrapper] WARNING: failed to restore active instances; keeping resume file."
+    fi
+}
+
+shutdown_handler() {
+    echo "[HA wrapper] Shutdown requested."
+
+    save_running_instances
+
+    if [ -n "${RUSTATIO_PID}" ] && kill -0 "${RUSTATIO_PID}" 2>/dev/null; then
+        echo "[HA wrapper] Forwarding SIGTERM to Rustatio (PID ${RUSTATIO_PID})."
+        kill -TERM "${RUSTATIO_PID}" 2>/dev/null || true
+    fi
+}
+
 echo "[HA wrapper] Checking Nginx Ingress configuration..."
 nginx -t
 
@@ -123,4 +209,38 @@ echo "[HA wrapper] Starting upstream Rustatio..."
 REAL_WATCH_DIR="/torrents"
 export WATCH_DIR="/__ha_readonly_watch_check_skip__"
 
-exec /app/entrypoint.sh env WATCH_DIR="${REAL_WATCH_DIR}" "$@"
+trap shutdown_handler TERM INT
+
+/app/entrypoint.sh env WATCH_DIR="${REAL_WATCH_DIR}" "$@" &
+RUSTATIO_PID=$!
+
+if wait_for_rustatio; then
+    restore_running_instances
+fi
+
+set +e
+
+while kill -0 "${RUSTATIO_PID}" 2>/dev/null; do
+    wait "${RUSTATIO_PID}"
+    RUSTATIO_EXIT=$?
+
+    if kill -0 "${RUSTATIO_PID}" 2>/dev/null; then
+        continue
+    fi
+
+    break
+done
+
+# Reap the child and obtain its final exit status if it has already exited.
+wait "${RUSTATIO_PID}" 2>/dev/null
+FINAL_EXIT=$?
+
+if [ "${FINAL_EXIT}" -ne 127 ]; then
+    RUSTATIO_EXIT="${FINAL_EXIT}"
+fi
+
+set -e
+
+RUSTATIO_EXIT="${RUSTATIO_EXIT:-0}"
+echo "[HA wrapper] Rustatio exited with status ${RUSTATIO_EXIT}."
+exit "${RUSTATIO_EXIT}"

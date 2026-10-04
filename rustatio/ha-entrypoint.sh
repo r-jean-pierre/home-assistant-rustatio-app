@@ -219,28 +219,16 @@ if wait_for_rustatio; then
 fi
 
 set +e
+wait "${RUSTATIO_PID}"
+RUSTATIO_EXIT=$?
 
+# A trapped TERM/INT interrupts wait. If Rustatio is still alive, wait again
+# so the wrapper remains PID 1 until the child has actually terminated.
 while kill -0 "${RUSTATIO_PID}" 2>/dev/null; do
     wait "${RUSTATIO_PID}"
     RUSTATIO_EXIT=$?
-
-    if kill -0 "${RUSTATIO_PID}" 2>/dev/null; then
-        continue
-    fi
-
-    break
 done
-
-# Reap the child and obtain its final exit status if it has already exited.
-wait "${RUSTATIO_PID}" 2>/dev/null
-FINAL_EXIT=$?
-
-if [ "${FINAL_EXIT}" -ne 127 ]; then
-    RUSTATIO_EXIT="${FINAL_EXIT}"
-fi
-
 set -e
 
-RUSTATIO_EXIT="${RUSTATIO_EXIT:-0}"
 echo "[HA wrapper] Rustatio exited with status ${RUSTATIO_EXIT}."
 exit "${RUSTATIO_EXIT}"

@@ -71,7 +71,7 @@ register_discovery() {
             jq -r --arg addon "${addon_slug}" '
                 (.data.discovery // .discovery // [])
                 | .[]?
-                | select(.addon == $addon and .service == "rustatio")
+                | select((.app // .addon) == $addon and .service == "rustatio")
                 | .uuid
             ' <<<"${discoveries}" | head -n 1
         )"

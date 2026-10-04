@@ -1,5 +1,5 @@
 name: Rustatio
-version: 1.0.0
+version: 1.0.1
 slug: rustatio
 description: Run Rustatio in Home Assistant with Ingress and read-only watch-folder
   access

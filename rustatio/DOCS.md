@@ -18,18 +18,21 @@ ghcr.io/r-jean-pierre/home-assistant-rustatio-app
 
 ## Recommended companion integration
 
-The App runs Rustatio and provides its web interface. For Home Assistant sensor
-entities, install the companion HACS custom integration:
+The App runs Rustatio and provides its web interface. To add **aggregate
+Home Assistant sensors** for running/managed torrents, tracker errors,
+watch-folder files and simulated transfer statistics, install the companion
+**[Rustatio for Home Assistant integration](https://github.com/r-jean-pierre/home-assistant-rustatio)**.
+
+Add that repository in HACS as a **custom Integration repository**:
 
 ```text
 https://github.com/r-jean-pierre/home-assistant-rustatio
 ```
 
-The App publishes a Supervisor discovery record containing its internal
-hostname and port. With the custom integration installed, Home Assistant can
-offer Rustatio automatically under **Settings → Devices & services**.
-
-Manual configuration remains available for Rustatio servers running elsewhere.
+The App attempts to publish a Supervisor discovery record with its internal
+hostname and port. When discovery succeeds, Home Assistant can propose Rustatio
+under **Settings → Devices & services**. The integration can also be configured
+manually when automatic discovery is unavailable.
 
 ## Configuration
 
@@ -137,8 +140,11 @@ At startup the wrapper uses the Supervisor discovery API to publish:
 Registration is idempotent: if this App already has a Rustatio discovery record,
 the existing record is reused instead of creating duplicates.
 
-The discovery endpoint is one of the Supervisor endpoints Apps may use without
-requesting broad `hassio_api` access.
+Discovery depends on Supervisor access and the App's effective permissions.
+A `403` during registration means discovery failed; it does **not** by itself
+mean the Rustatio server or Ingress is unavailable. An isolated local test App
+without the `discovery` declaration produced this warning; discovery in the
+published App has not yet been revalidated for version 1.0.2.
 
 ## Security model
 
@@ -185,6 +191,24 @@ The App uses cold backups, so Supervisor stops the App while its persistent data
 is backed up.
 
 The watch folder is an external read-only source and is not Rustatio state.
+
+## Selective restart of running torrents
+
+During a normal Supervisor stop/restart, the wrapper queries
+`/api/instances/summary` and saves only instance IDs in state `running` or
+`starting` to `/data/rustatio-resume.json`. On the next start, once the Rustatio
+API is ready, it attempts to restart those IDs with `/api/grid/start`.
+Instances that were already stopped are **not** deliberately restarted.
+
+The wrapper uses a 2-second connection timeout and a 5-second total timeout
+on its readiness, save and restore API requests, so an unresponsive request
+does not hang indefinitely. If save fails, the previous resume state is not
+replaced; if restore fails, the resume file is kept for a later attempt.
+
+This behavior was tested with a running and a stopped instance in Docker.
+Installation, startup and Ingress were validated separately on Home Assistant
+with Rustatio 2.13.0. The selective restart behavior has **not** yet been
+end-to-end tested on Home Assistant itself.
 
 ## Troubleshooting
 
@@ -242,4 +266,4 @@ https://github.com/takitsu21/rustatio
 This App is an independent Home Assistant wrapper maintained by
 `r-jean-pierre`.
 
-App `1.0.0` pins Rustatio `2.9.1`.
+App `1.0.2` pins Rustatio `2.13.0`.

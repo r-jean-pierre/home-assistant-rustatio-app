@@ -111,11 +111,13 @@ RUSTATIO_API="http://127.0.0.1:${PORT:-8080}"
 RESUME_FILE="/data/rustatio-resume.json"
 RUSTATIO_PID=""
 
+RUSTATIO_CURL_TIMEOUT=(--connect-timeout 2 --max-time 5)
+
 wait_for_rustatio() {
     local attempt
 
     for attempt in $(seq 1 60); do
-        if curl -fsS "${RUSTATIO_API}/api/instances/summary" >/dev/null 2>&1; then
+        if curl -fsS "${RUSTATIO_CURL_TIMEOUT[@]}" "${RUSTATIO_API}/api/instances/summary" >/dev/null 2>&1; then
             return 0
         fi
         sleep 1
@@ -130,7 +132,7 @@ save_running_instances() {
 
     tmp_file="${RESUME_FILE}.tmp"
 
-    if ! response="$(curl -fsS "${RUSTATIO_API}/api/instances/summary" 2>/dev/null)"; then
+    if ! response="$(curl -fsS "${RUSTATIO_CURL_TIMEOUT[@]}" "${RUSTATIO_API}/api/instances/summary" 2>/dev/null)"; then
         echo "[HA wrapper] WARNING: could not query Rustatio before shutdown; resume state was not updated."
         return 0
     fi
@@ -170,7 +172,7 @@ restore_running_instances() {
 
     payload="$(jq -c '{ids: .}' "${RESUME_FILE}")"
 
-    if curl -fsS \
+    if curl -fsS "${RUSTATIO_CURL_TIMEOUT[@]}" \
         -H "Content-Type: application/json" \
         -X POST \
         -d "${payload}" \

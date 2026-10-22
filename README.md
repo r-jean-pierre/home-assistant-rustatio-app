@@ -2,6 +2,10 @@
 
 Home Assistant App repository for [Rustatio](https://github.com/takitsu21/rustatio).
 
+**App 1.0.2 · Rustatio 2.13.0** — Home Assistant Ingress, read-only torrent
+watch folder, persistent state and selective restart of previously running
+torrents.
+
 Repository maintained by **r-jean-pierre**.
 
 ## Add this repository
@@ -21,16 +25,24 @@ Then install **Rustatio**.
 The App is distributed as a pre-built multi-architecture image for `amd64` and
 `aarch64`, which is the preferred Home Assistant publication model.
 
-## Companion Home Assistant integration
+## Companion Home Assistant integration — recommended
 
-For aggregate Rustatio sensors, install:
+**Complete the setup with [Rustatio for Home Assistant](https://github.com/r-jean-pierre/home-assistant-rustatio)**,
+the companion custom integration maintained by **r-jean-pierre**.
+
+- **This App** runs the Rustatio server and provides its web UI through Ingress.
+- **The integration** adds aggregate Home Assistant sensors for managed/running
+  torrents, tracker errors, watch-folder files and simulated transfer statistics.
+
+Install the integration through HACS as a **custom Integration repository**:
 
 ```text
 https://github.com/r-jean-pierre/home-assistant-rustatio
 ```
 
-The App publishes Supervisor discovery information so the companion integration
-can find the App without relying on a hard-coded `local-rustatio` hostname.
+The App attempts Supervisor discovery so the integration can find its internal
+address automatically. If discovery is unavailable, the integration can also
+be configured manually. See `rustatio/DOCS.md` for details.
 
 ## Repository layout
 

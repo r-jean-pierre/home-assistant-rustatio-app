@@ -2,27 +2,35 @@
 
 Run [Rustatio](https://github.com/takitsu21/rustatio) as a Home Assistant App.
 
+**App 1.0.2 · upstream Rustatio 2.13.0**. For Home Assistant dashboards and
+aggregate sensors, pair it with the [Rustatio Home Assistant integration](https://github.com/r-jean-pierre/home-assistant-rustatio).
+
 This App wraps the upstream Rustatio container without modifying Rustatio itself.
 It adds the pieces needed for a clean Home Assistant experience:
 
 - native Home Assistant Ingress;
 - a sidebar panel;
 - a configurable read-only torrent watch folder;
-- persistent Rustatio state;
+- persistent Rustatio state and selective restart of previously active torrents;
 - Home Assistant Supervisor discovery;
 - a custom AppArmor profile;
 - pre-built `amd64` and `aarch64` images.
 
-## Home Assistant integration
+## Recommended companion integration
 
-For Home Assistant sensors, install the companion custom integration:
+**[Rustatio for Home Assistant](https://github.com/r-jean-pierre/home-assistant-rustatio)**
+adds aggregate Home Assistant sensors for Rustatio (running/managed torrents,
+watch-folder files, tracker errors and simulated transfer statistics).
 
-`https://github.com/r-jean-pierre/home-assistant-rustatio`
+Add the repository to HACS as a custom **Integration** repository:
 
-When both the App and the custom integration are installed, the App advertises
-its internal hostname and port through Supervisor discovery. Home Assistant can
-then offer Rustatio as a discovered integration without requiring users to know
-the repository-specific internal DNS name.
+```text
+https://github.com/r-jean-pierre/home-assistant-rustatio
+```
+
+The App attempts to advertise its internal hostname and port through Supervisor
+discovery. If discovery is not available, manual integration configuration
+remains possible.
 
 ## Watch folder
 
@@ -84,10 +92,10 @@ Home Assistant `/share` mount is read-only.
 
 ## Upstream version
 
-App version `1.0.0` is built on the upstream Rustatio container:
+App version `1.0.2` is built on the upstream Rustatio container:
 
 ```text
-ghcr.io/takitsu21/rustatio:2.9.1
+ghcr.io/takitsu21/rustatio:2.13.0
 ```
 
 Pinning the upstream release makes App builds reproducible instead of silently

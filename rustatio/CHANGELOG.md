@@ -38,4 +38,3 @@
 - Optional direct LAN port, disabled by default.
 - Multi-architecture pre-built images for amd64 and aarch64.
 - Custom AppArmor confinement and persistent Rustatio state.
-

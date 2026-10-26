@@ -294,4 +294,3 @@ This App is an independent Home Assistant wrapper maintained by
 `r-jean-pierre`.
 
 App `1.0.3` pins Rustatio `2.14.1`.
-

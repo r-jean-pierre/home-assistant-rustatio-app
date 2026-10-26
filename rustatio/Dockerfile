@@ -1,7 +1,7 @@
 ARG BUILD_ARCH
 ARG BUILD_VERSION
 
-FROM ghcr.io/takitsu21/rustatio:2.13.0
+FROM ghcr.io/takitsu21/rustatio:2.14.1
 
 ARG BUILD_ARCH
 ARG BUILD_VERSION
@@ -15,7 +15,7 @@ COPY ha-entrypoint.sh /ha-entrypoint.sh
 
 RUN chmod +x /ha-entrypoint.sh \
     && printf '%s\n' "${BUILD_VERSION}" > /ha-app-version \
-    && printf '%s\n' "ghcr.io/takitsu21/rustatio:2.13.0" > /ha-upstream-image
+    && printf '%s\n' "ghcr.io/takitsu21/rustatio:2.14.1" > /ha-upstream-image
 
 LABEL \
   io.hass.name="Rustatio" \

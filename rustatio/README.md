@@ -2,7 +2,7 @@
 
 Run [Rustatio](https://github.com/takitsu21/rustatio) as a Home Assistant App.
 
-**App 1.0.2 · upstream Rustatio 2.13.0**. For Home Assistant dashboards and
+**App 1.0.3 · upstream Rustatio 2.14.1**. For Home Assistant dashboards and
 aggregate sensors, pair it with the [Rustatio Home Assistant integration](https://github.com/r-jean-pierre/home-assistant-rustatio).
 
 This App wraps the upstream Rustatio container without modifying Rustatio itself.
@@ -92,10 +92,10 @@ Home Assistant `/share` mount is read-only.
 
 ## Upstream version
 
-App version `1.0.2` is built on the upstream Rustatio container:
+App version `1.0.3` is built on the upstream Rustatio container:
 
 ```text
-ghcr.io/takitsu21/rustatio:2.13.0
+ghcr.io/takitsu21/rustatio:2.14.1
 ```
 
 Pinning the upstream release makes App builds reproducible instead of silently

@@ -2,7 +2,7 @@
 
 Home Assistant App repository for [Rustatio](https://github.com/takitsu21/rustatio).
 
-**App 1.0.2 · Rustatio 2.13.0** — Home Assistant Ingress, read-only torrent
+**App 1.0.3 · Rustatio 2.14.1** — Home Assistant Ingress, read-only torrent
 watch folder, persistent state and selective restart of previously running
 torrents.
 

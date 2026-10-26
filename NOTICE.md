@@ -10,7 +10,7 @@ https://github.com/takitsu21/rustatio
 The wrapper image uses the upstream container:
 
 ```text
-ghcr.io/takitsu21/rustatio:2.13.0
+ghcr.io/takitsu21/rustatio:2.14.1
 ```
 
 Rustatio is distributed under the MIT License. The upstream project and its

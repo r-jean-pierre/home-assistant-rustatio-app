@@ -105,6 +105,10 @@ Assistant's dynamic Ingress prefix.
 Only the Home Assistant Ingress gateway is allowed to connect to the Nginx
 Ingress listener.
 
+Rustatio 2.14.1 uses a shared `/api/stream` SSE connection per browser tab.
+For this upgrade, check live updates and logs through Ingress. Direct API/SSE
+checks from a terminal do not validate the authenticated Ingress path.
+
 ## Optional direct LAN port
 
 Container port `8080` is declared but has no host mapping by default.
@@ -144,7 +148,7 @@ Discovery depends on Supervisor access and the App's effective permissions.
 A `403` during registration means discovery failed; it does **not** by itself
 mean the Rustatio server or Ingress is unavailable. An isolated local test App
 without the `discovery` declaration produced this warning; discovery in the
-published App has not yet been revalidated for version 1.0.2.
+published App has not yet been revalidated for version 1.0.3.
 
 ## Security model
 
@@ -205,10 +209,33 @@ on its readiness, save and restore API requests, so an unresponsive request
 does not hang indefinitely. If save fails, the previous resume state is not
 replaced; if restore fails, the resume file is kept for a later attempt.
 
-This behavior was tested with a running and a stopped instance in Docker.
-Installation, startup and Ingress were validated separately on Home Assistant
-with Rustatio 2.13.0. The selective restart behavior has **not** yet been
-end-to-end tested on Home Assistant itself.
+Previous validation: selective restart was tested in Docker and the maintainer
+also confirmed Ingress, torrent persistence and selective restart after the
+production update to App 1.0.2 / Rustatio 2.13.0.
+
+### App 1.0.3 / Rustatio 2.14.1 validation
+
+On October 26, 2026, an isolated local copy was built from the candidate sources
+and tested on the maintainer's Home Assistant installation:
+
+- Supervisor installation, startup, clean stop and subsequent startup succeeded.
+- Startup logs confirmed Rustatio 2.14.1, a valid Nginx configuration and the
+  expected isolated watch-folder path.
+- The direct summary API returned an empty instance list before and after restart.
+- The direct SSE endpoint returned HTTP 200, `text/event-stream` and an initial
+  empty `summaries` snapshot before and after restart.
+- The maintainer confirmed version 2.14.1 through authenticated Ingress, working
+  themes, page reload and a usable interface in two simultaneous browser tabs.
+- Tests of the wrapper functions with a simulated API passed selective
+  running/starting selection and resume-file preservation on errors.
+
+These checks used an empty watch folder. They do not validate real torrent
+persistence or selective resume on this candidate. Live instance/log events
+through Ingress were not separately verified. The test copy omitted discovery
+permission, so it does not validate production discovery. The read-only mount
+declaration was checked; an actual write-denial test was not performed.
+This local build does not establish validation of both supported architectures.
+The production App was left unchanged.
 
 ## Troubleshooting
 
@@ -266,4 +293,4 @@ https://github.com/takitsu21/rustatio
 This App is an independent Home Assistant wrapper maintained by
 `r-jean-pierre`.
 
-App `1.0.2` pins Rustatio `2.13.0`.
+App `1.0.3` pins Rustatio `2.14.1`.
